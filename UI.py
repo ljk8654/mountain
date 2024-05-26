@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import font
 from PIL import Image, ImageTk
 import textwrap
+import xmlread
 
 
 class UI:
@@ -90,12 +91,9 @@ class UI:
         self.frame = []
         self.click_data="?"
         # 예제 데이터
-        self.mountains = [
-            {"Name": "한라산", "Location": "제주", "Height": 1950, "Description": "한국에서 가장 높은 산."},
-            {"Name": "설악산", "Location": "강원", "Height": 1708, "Description": "한국에서 두 번째로 높은 산."},
-            {"Name": "지리산", "Location": "전남", "Height": 1915, "Description": "남한에서 가장 큰 국립공원."},
-        ]
-
+        self.mountains = []
+        for mountain in xmlread.mountain_data:
+            self.mountains.append(mountain)
         colors = ["lightgreen", "lightgreen", "lightgreen"]
         for i in range(3):
             self.frame.append(Frame(self.window, bg=colors[i]))
@@ -121,14 +119,13 @@ class UI:
 
         # 리스트 박스 클릭 이벤트 처리 함수를 설정
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
-    def select_mountain(self):
+    def select_mountain(self,a):
         selected_index = self.ListBox.curselection()
 
         if selected_index:
             selected_mountain_name = self.ListBox.get(selected_index)
 
             selected_mountain = next((mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
-
             if selected_mountain:
                 self.label_2[1].config(text=selected_mountain["Name"])
                 self.label_2[3].config(text=selected_mountain["Location"])
