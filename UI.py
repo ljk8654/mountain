@@ -143,6 +143,12 @@ class UI:
                 wrapped_description = "\n".join(textwrap.wrap(xmlread.mountain_information(selected_mountain_name), 18))
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
+                image1 = xmlread.mountain_picture()
+                image1 = image1.resize((300, 200), Image.LANCZOS)
+                self.p = ImageTk.PhotoImage(image1)
+                self.photo = Label(self.frame[2], image=self.p)
+                self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+
         else:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
