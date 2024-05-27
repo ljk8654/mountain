@@ -52,9 +52,17 @@ class UI:
         self.label_2[5].grid(row=5, column=0, sticky='NSEW', columnspan=3)
         self.label_2.append(Label(self.frame[1], text="정보", font=self.TempFont, bg='green'))
         self.label_2[6].grid(row=6, column=0, sticky='NSEW', columnspan=3)
-        self.label_2.append(
-            Label(self.frame[1], text="결과 없음", font=self.TempFont, bg='lightgreen', height=30, width=35))
-        self.label_2[7].grid(row=7, column=0, sticky='NSEW', columnspan=3)
+        self.info_frame = Frame(self.frame[1])
+        self.info_frame.grid(row=7, column=0, sticky='NSEW', columnspan=3)
+
+        self.info_text = Text(self.info_frame, font=self.TempFont, wrap=WORD, height=30, width=32, bg='lightgreen')
+        self.info_text.grid(row=0, column=0, sticky='NSEW')
+
+        self.scrollbar_2 = Scrollbar(self.info_frame, orient=VERTICAL, command=self.info_text.yview)
+        self.info_text.config(yscrollcommand=self.scrollbar_2.set)
+        self.scrollbar_2.grid(row=0, column=1, sticky='NS')
+
+        self.info_text.config(state=DISABLED)
 
     def Frame_3(self):
         self.FOF = Frame(self.frame[2],bg='lightgreen')
@@ -130,8 +138,11 @@ class UI:
                 self.label_2[1].config(text=selected_mountain["Name"])
                 self.label_2[3].config(text=selected_mountain["Location"])
                 self.label_2[5].config(text=f"{selected_mountain['Height']} M")
-                wrapped_description = "\n".join(textwrap.wrap(selected_mountain["Description"], 18))
-                self.label_2[7].config(text=wrapped_description)
+                self.info_text.config(state=NORMAL)
+                self.info_text.delete(1.0, END)
+                wrapped_description = "\n".join(textwrap.wrap(xmlread.mountain_information(selected_mountain_name), 18))
+                self.info_text.insert(END, wrapped_description)
+                self.info_text.config(state=DISABLED)
         else:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
