@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import font
 from PIL import Image, ImageTk
 import textwrap
+import map_read
 import xmlread
 
 
@@ -72,7 +73,7 @@ class UI:
         self.label_3.append(Label(self.frame[2], text="버튼", font=self.TempFont, bg='green'))
         self.label_3[1].grid(row=0, column=1, sticky='NSEW', columnspan=3)
 
-        image1 = Image.open('b1fv.png')
+        image1 = Image.open('mountain01.png')
         image1 = image1.resize((300, 200), Image.LANCZOS)
         self.p = ImageTk.PhotoImage(image1)
         self.photo = Label(self.frame[2], image=self.p)
@@ -81,16 +82,16 @@ class UI:
         self.label_3[2].grid(row=2, column=0, sticky='NSEW', columnspan=3)
 
         # 오른쪽에 위치할 버튼들
-        self.button1 = Button(self.FOF, text='???')
-        self.button2 = Button(self.FOF, text='???')
-        self.button3 = Button(self.FOF, text='???')
+        self.button1 = Button(self.FOF, text='등산로')
+        self.button2 = Button(self.FOF, text='메세지')
+        self.button3 = Button(self.FOF, text='텔레그램')
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
         self.button3.grid(row=2, column=1, sticky='N', padx=5, pady=5)
 
     def __init__(self):
         self.window = Tk()
-        self.window.geometry("800x600")
+        self.window.geometry("830x600")
         self.TempFont = font.Font(size=10, weight='bold', family='Consolas')
         self.label = []
         self.label_2 = []
@@ -119,12 +120,20 @@ class UI:
 
         # 사용자가 입력한 검색어
         search_name = self.entry1.get()
-
+        print(search_name)
+        search_area = self.entry2.get()
         # 산 이름이 사용자 입력과 일치하는 산을 리스트 박스에 추가
-        for mountain in self.mountains:
-            if search_name.lower() in mountain["Name"].lower():
+        if search_name:
+            for mountain in self.mountains:
+                if search_name.lower() in mountain["Name"].lower():
+                    self.ListBox.insert(END, mountain["Name"])
+        elif search_area:
+            for mountain in self.mountains:
+                if search_area.lower() in mountain["Location"].lower():
+                    self.ListBox.insert(END, mountain["Name"])
+        else:
+            for mountain in self.mountains:
                 self.ListBox.insert(END, mountain["Name"])
-
         # 리스트 박스 클릭 이벤트 처리 함수를 설정
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
     def select_mountain(self,a):
@@ -144,10 +153,26 @@ class UI:
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
                 image1 = xmlread.mountain_picture()
-                image1 = image1.resize((300, 200), Image.LANCZOS)
-                self.p = ImageTk.PhotoImage(image1)
-                self.photo = Label(self.frame[2], image=self.p)
-                self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+                if image1:
+                    image1 = image1.resize((300, 200), Image.LANCZOS)
+                    self.p = ImageTk.PhotoImage(image1)
+                    self.photo = Label(self.frame[2], image=self.p)
+                    self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+                else:
+                    image1 = Image.open('mountain01.png')
+                    image1 = image1.resize((300, 200), Image.LANCZOS)
+                    self.p = ImageTk.PhotoImage(image1)
+                    self.photo = Label(self.frame[2], image=self.p)
+                    self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+                image2 = map_read.update_map(selected_mountain)
+                if image2:
+                    image2 = image2.resize((300, 300), Image.LANCZOS)
+                    self.p2 = ImageTk.PhotoImage(image2)
+                    self.photo2 = Label(self.frame[2], image=self.p2,bg='lightgreen')
+                    self.photo2.grid(row=3, column=0, padx=(30, 0), pady=(0, 20))
+                else:
+                    pass
+
 
         else:
             for label in self.label_2[1:]:

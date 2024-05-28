@@ -5,7 +5,6 @@ import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote
 
-mountain_info = ''
 url = 'http://apis.data.go.kr/B553662/top100FamtListBasiInfoService/getTop100FamtListBasiInfoList'
 moutain_info_url = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2'
 mountain_picture_url = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoImgOpenAPI2'
@@ -15,7 +14,6 @@ service_key = unquote(service_key)
 queryParams = {'serviceKey': service_key, 'pageNo': '1', 'numOfRows': '100','type': 'xml'}
 moutain_info_params = {'serviceKey': service_key, 'searchWrd':'','pageNo': '1', 'numOfRows': '10'}
 moutain_picture_params = {'serviceKey': service_key, 'mntiListNo':'', 'pageNo': '1', 'numOfRows': '1'}
-
 response = requests.get(url, params=queryParams)
 
 print(response.text)
@@ -24,13 +22,16 @@ root = ET.fromstring(response.text)
 header = ["Name", "Addr", "Lat", "Lot"]
 mountain_data = []
 
+
+
 for item in root.iter("item"):
-    mountain_dict = {"Name": "", "Location": "", "Height": "", "Description": ""}
+    mountain_dict = {"Name": "", "Location": "", "Height": "", "Description": "", 'Lat':0,'Lot':0}
     mountain_dict["Name"] = item.findtext("frtrlNm")
     mountain_dict["Location"] = item.findtext("ctpvNm")
     mountain_dict["Height"] = item.findtext("aslAltide")
     mountain_dict["Description"] = item.findtext("addrNm")
-
+    mountain_dict["Lat"] = float(item.findtext("lat"))
+    mountain_dict["Lot"] = float(item.findtext("lot"))
     mountain_data.append(mountain_dict)
 
 def mountain_information(mountain_n):
@@ -49,4 +50,3 @@ def mountain_picture():
         icon_response = requests.get('http://www.forest.go.kr/images/data/down/mountain/' + item.findtext('imgfilename'))
         icon_image = Image.open(BytesIO(icon_response.content))
         return icon_image
-
