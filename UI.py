@@ -81,10 +81,18 @@ class UI:
         self.label_3.append(Label(self.frame[2], text="위치", font=self.TempFont, bg='green'))
         self.label_3[2].grid(row=2, column=0, sticky='NSEW', columnspan=3)
 
+        message_image = Image.open('google.png')
+        message_image = message_image.resize((50,40), Image.LANCZOS)
+        self.message_photo = ImageTk.PhotoImage(message_image)
+
+        telegram_image = Image.open('telegram.png')  # 텔레그램 버튼 이미지 경로
+        telegram_image = telegram_image.resize((50, 40), Image.LANCZOS)
+        self.telegram_photo = ImageTk.PhotoImage(telegram_image)
+
         # 오른쪽에 위치할 버튼들
         self.button1 = Button(self.FOF, text='등산로')
-        self.button2 = Button(self.FOF, text='메세지')
-        self.button3 = Button(self.FOF, text='텔레그램')
+        self.button2 = Button(self.FOF, image=self.message_photo, compound="top")
+        self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
         self.button3.grid(row=2, column=1, sticky='N', padx=5, pady=5)
@@ -107,11 +115,11 @@ class UI:
         for i in range(3):
             self.frame.append(Frame(self.window, bg=colors[i]))
             self.frame[i].grid(row=0, column=i, sticky='NSEW')  # 세로로 3분할
-
         self.Frame_1()
         self.Frame_2()
         self.Frame_3()
-
+        self.photo2 = Label(self.frame[2], bg='lightgreen')
+        self.photo2.grid(row=3, column=0, padx=(30, 0), pady=(0, 20))
         self.window.mainloop()
 
     def search_click(self):
@@ -152,28 +160,24 @@ class UI:
                 wrapped_description = "\n".join(textwrap.wrap(xmlread.mountain_information(selected_mountain_name), 18))
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
-                image1 = xmlread.mountain_picture()
+                image1 = xmlread.mountain_picture(selected_mountain_name)
                 if image1:
                     image1 = image1.resize((300, 200), Image.LANCZOS)
                     self.p = ImageTk.PhotoImage(image1)
-                    self.photo = Label(self.frame[2], image=self.p)
-                    self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+                    self.photo.config(image=self.p)  # 기존 라벨을 업데이트
                 else:
                     image1 = Image.open('mountain01.png')
                     image1 = image1.resize((300, 200), Image.LANCZOS)
                     self.p = ImageTk.PhotoImage(image1)
-                    self.photo = Label(self.frame[2], image=self.p)
-                    self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
+                    self.photo.config(image=self.p)  # 기존 라벨을 업데이트
+
                 image2 = map_read.update_map(selected_mountain)
                 if image2:
                     image2 = image2.resize((300, 300), Image.LANCZOS)
                     self.p2 = ImageTk.PhotoImage(image2)
-                    self.photo2 = Label(self.frame[2], image=self.p2,bg='lightgreen')
-                    self.photo2.grid(row=3, column=0, padx=(30, 0), pady=(0, 20))
+                    self.photo2.config(image=self.p2)  # 기존 라벨을 업데이트
                 else:
                     pass
-
-
         else:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
