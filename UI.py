@@ -3,7 +3,7 @@ from tkinter import font
 from PIL import Image, ImageTk
 import textwrap
 import map_read
-import xmlread
+from xmlread import *
 
 
 class UI:
@@ -11,7 +11,6 @@ class UI:
         self.label.append(Label(self.frame[0], text="정보 입력", font=self.TempFont, bg='green'))
         self.label[0].grid(row=0, column=0, sticky='NSEW', columnspan=3)
 
-        # Label과 Entry를 좌우로 붙여서 배치
         self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont))
         self.label[1].grid(row=1, column=0, sticky='WN', padx=(5, 0), pady=5)
 
@@ -66,8 +65,8 @@ class UI:
         self.info_text.config(state=DISABLED)
 
     def Frame_3(self):
-        self.FOF = Frame(self.frame[2],bg='lightgreen')
-        self.FOF.grid(row=1,column=1,sticky='WE')
+        self.FOF = Frame(self.frame[2], bg='lightgreen')
+        self.FOF.grid(row=1, column=1, sticky='WE')
         self.label_3.append(Label(self.frame[2], text="사진", font=self.TempFont, bg='green'))
         self.label_3[0].grid(row=0, column=0, sticky='NSEW', columnspan=3)
         self.label_3.append(Label(self.frame[2], text="버튼", font=self.TempFont, bg='green'))
@@ -77,20 +76,19 @@ class UI:
         image1 = image1.resize((300, 200), Image.LANCZOS)
         self.p = ImageTk.PhotoImage(image1)
         self.photo = Label(self.frame[2], image=self.p)
-        self.photo.grid(row=1, column=0,padx=(35,0),pady=(20,20))
+        self.photo.grid(row=1, column=0, padx=(35, 0), pady=(20, 20))
         self.label_3.append(Label(self.frame[2], text="위치", font=self.TempFont, bg='green'))
         self.label_3[2].grid(row=2, column=0, sticky='NSEW', columnspan=3)
 
         message_image = Image.open('google.png')
-        message_image = message_image.resize((50,40), Image.LANCZOS)
+        message_image = message_image.resize((50, 40), Image.LANCZOS)
         self.message_photo = ImageTk.PhotoImage(message_image)
 
-        telegram_image = Image.open('telegram.png')  # 텔레그램 버튼 이미지 경로
+        telegram_image = Image.open('telegram.png')
         telegram_image = telegram_image.resize((50, 40), Image.LANCZOS)
         self.telegram_photo = ImageTk.PhotoImage(telegram_image)
 
-        # 오른쪽에 위치할 버튼들
-        self.button1 = Button(self.FOF, text='등산로')
+        self.button1 = Button(self.FOF, text='등산로', command=self.open_trail_window)
         self.button2 = Button(self.FOF, image=self.message_photo, compound="top")
         self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
@@ -106,15 +104,13 @@ class UI:
         self.label_3 = []
 
         self.frame = []
-        self.click_data="?"
-        # 예제 데이터
-        self.mountains = []
-        for mountain in xmlread.mountain_data:
-            self.mountains.append(mountain)
+        self.click_data = "?"
+        self.mountains = fetch_mountain_data()  # API에서 산 데이터를 가져옴
+
         colors = ["lightgreen", "lightgreen", "lightgreen"]
         for i in range(3):
             self.frame.append(Frame(self.window, bg=colors[i]))
-            self.frame[i].grid(row=0, column=i, sticky='NSEW')  # 세로로 3분할
+            self.frame[i].grid(row=0, column=i, sticky='NSEW')
         self.Frame_1()
         self.Frame_2()
         self.Frame_3()
@@ -123,14 +119,9 @@ class UI:
         self.window.mainloop()
 
     def search_click(self):
-        # 리스트 박스 초기화
         self.ListBox.delete(0, END)
-
-        # 사용자가 입력한 검색어
         search_name = self.entry1.get()
-        print(search_name)
         search_area = self.entry2.get()
-        # 산 이름이 사용자 입력과 일치하는 산을 리스트 박스에 추가
         if search_name:
             for mountain in self.mountains:
                 if search_name.lower() in mountain["Name"].lower():
@@ -142,14 +133,12 @@ class UI:
         else:
             for mountain in self.mountains:
                 self.ListBox.insert(END, mountain["Name"])
-        # 리스트 박스 클릭 이벤트 처리 함수를 설정
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
-    def select_mountain(self,a):
-        selected_index = self.ListBox.curselection()
 
+    def select_mountain(self, a):
+        selected_index = self.ListBox.curselection()
         if selected_index:
             selected_mountain_name = self.ListBox.get(selected_index)
-
             selected_mountain = next((mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
             if selected_mountain:
                 self.label_2[1].config(text=selected_mountain["Name"])
@@ -157,30 +146,36 @@ class UI:
                 self.label_2[5].config(text=f"{selected_mountain['Height']} M")
                 self.info_text.config(state=NORMAL)
                 self.info_text.delete(1.0, END)
-                wrapped_description = "\n".join(textwrap.wrap(xmlread.mountain_information(selected_mountain_name), 18))
+                wrapped_description = "\n".join(textwrap.wrap(fetch_mountain_information(selected_mountain_name), 18))
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
-                image1 = xmlread.mountain_picture(selected_mountain_name)
+                image1 = fetch_mountain_picture(selected_mountain_name)
                 if image1:
                     image1 = image1.resize((300, 200), Image.LANCZOS)
                     self.p = ImageTk.PhotoImage(image1)
-                    self.photo.config(image=self.p)  # 기존 라벨을 업데이트
+                    self.photo.config(image=self.p)
                 else:
                     image1 = Image.open('mountain01.png')
                     image1 = image1.resize((300, 200), Image.LANCZOS)
                     self.p = ImageTk.PhotoImage(image1)
-                    self.photo.config(image=self.p)  # 기존 라벨을 업데이트
-
+                    self.photo.config(image=self.p)
                 image2 = map_read.update_map(selected_mountain)
                 if image2:
                     image2 = image2.resize((300, 300), Image.LANCZOS)
                     self.p2 = ImageTk.PhotoImage(image2)
-                    self.photo2.config(image=self.p2)  # 기존 라벨을 업데이트
-                else:
-                    pass
+                    self.photo2.config(image=self.p2)
         else:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
                     label.config(text="결과 없음")
+
+    def open_trail_window(self):
+        trail_window = Toplevel(self.window)
+        trail_window.geometry("400x300")
+        trail_window.title("등산로 정보")
+        Label(trail_window, text="등산로 정보", font=self.TempFont).pack(pady=20)
+        trail_info = Text(trail_window, font=self.TempFont, wrap=WORD, height=10, width=40, bg='lightgreen')
+        trail_info.pack(pady=20)
+        trail_info.insert(END, "등산로 정보가 여기에 표시됩니다.")  # Add actual trail information retrieval here
 
 UI()

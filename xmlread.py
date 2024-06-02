@@ -4,53 +4,60 @@ import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote
 
-url = 'http://apis.data.go.kr/B553662/top100FamtListBasiInfoService/getTop100FamtListBasiInfoList'
-mountain_info_url = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2'
-mountain_picture_url = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoImgOpenAPI2'
-# 공공데이터포털에서 발급받은 디코딩되지 않은 인증키 입력
-service_key = "VFmlOup7ePIpAb7U94%2B7EK7qHRHxNL0iZ%2F4orFG3OqEnNXWkVxtuxswyJYOijCoSa5tvdCyeuxhyujNTsobAdw%3D%3D"
-service_key = unquote(service_key)
-query_params = {'serviceKey': service_key, 'pageNo': '1', 'numOfRows': '100', 'type': 'xml'}
-mountain_info_params = {'serviceKey': service_key, 'searchWrd': '', 'pageNo': '1', 'numOfRows': '10'}
-mountain_picture_params = {'serviceKey': service_key, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
+# 상수 정의
+BASE_URL = 'http://apis.data.go.kr/B553662/top100FamtListBasiInfoService/getTop100FamtListBasiInfoList'
+MOUNTAIN_INFO_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2'
+MOUNTAIN_PICTURE_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoImgOpenAPI2'
 
-response = requests.get(url, params=query_params)
-response.raise_for_status()  # HTTP 응답 코드 확인
+# API 키 (디코딩됨)
+SERVICE_KEY = "VFmlOup7ePIpAb7U94%2B7EK7qHRHxNL0iZ%2F4orFG3OqEnNXWkVxtuxswyJYOijCoSa5tvdCyeuxhyujNTsobAdw%3D%3D"
+SERVICE_KEY = unquote(SERVICE_KEY)
 
-root = ET.fromstring(response.text)
-
-header = ["Name", "Addr", "Lat", "Lot"]
-mountain_data = []
-
-for item in root.iter("item"):
-    mountain_dict = {
-        "Name": item.findtext("frtrlNm"),
-        "Location": item.findtext("ctpvNm"),
-        "Height": item.findtext("aslAltide"),
-        "Description": item.findtext("addrNm"),
-        "Lat": float(item.findtext("lat") or 0),
-        "Lot": float(item.findtext("lot") or 0)
-    }
-    mountain_data.append(mountain_dict)
+# API 파라미터
+QUERY_PARAMS = {'serviceKey': SERVICE_KEY, 'pageNo': '1', 'numOfRows': '100', 'type': 'xml'}
+MOUNTAIN_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchWrd': '', 'pageNo': '1', 'numOfRows': '10'}
+MOUNTAIN_PICTURE_PARAMS = {'serviceKey': SERVICE_KEY, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
 
 
-def mountain_information(mountain_name):
-    mountain_info_params['searchWrd'] = mountain_name
-    mountain_info_response = requests.get(mountain_info_url, params=mountain_info_params)
+def fetch_mountain_data():
+    # API 요청
+    response = requests.get(BASE_URL, params=QUERY_PARAMS)
+    response.raise_for_status()  # HTTP 응답 코드 확인
+    root = ET.fromstring(response.text)
+
+    mountain_data = []
+    for item in root.iter("item"):
+        mountain_dict = {
+            "Name": item.findtext("frtrlNm"),
+            "Location": item.findtext("ctpvNm"),
+            "Height": item.findtext("aslAltide"),
+            "Description": item.findtext("addrNm"),
+            "Lat": float(item.findtext("lat") or 0),
+            "Lot": float(item.findtext("lot") or 0)
+        }
+        mountain_data.append(mountain_dict)
+
+    return mountain_data
+
+
+def fetch_mountain_information(mountain_name):
+    # 산 정보 API 요청
+    MOUNTAIN_INFO_PARAMS['searchWrd'] = mountain_name
+    mountain_info_response = requests.get(MOUNTAIN_INFO_URL, params=MOUNTAIN_INFO_PARAMS)
     mountain_info_response.raise_for_status()
 
     mountain_info_root = ET.fromstring(mountain_info_response.text)
-
     for item in mountain_info_root.iter("item"):
-        mountain_picture_params['mntiListNo'] = item.findtext('mntilistno')
+        MOUNTAIN_PICTURE_PARAMS['mntiListNo'] = item.findtext('mntilistno')
         return item.findtext('mntidetails')
 
-    return "No information available"
+    return "정보 없음"
 
 
-def mountain_picture(mountain_name):
-    mountain_info_params['searchWrd'] = mountain_name
-    mountain_info_response = requests.get(mountain_info_url, params=mountain_info_params)
+def fetch_mountain_picture(mountain_name):
+    # 산 사진 API 요청
+    MOUNTAIN_INFO_PARAMS['searchWrd'] = mountain_name
+    mountain_info_response = requests.get(MOUNTAIN_INFO_URL, params=MOUNTAIN_INFO_PARAMS)
     mountain_info_response.raise_for_status()
 
     mountain_info_root = ET.fromstring(mountain_info_response.text)
@@ -63,12 +70,11 @@ def mountain_picture(mountain_name):
     if not mountain_list_no:
         return None
 
-    mountain_picture_params['mntiListNo'] = mountain_list_no
-    mountain_picture_response = requests.get(mountain_picture_url, params=mountain_picture_params)
+    MOUNTAIN_PICTURE_PARAMS['mntiListNo'] = mountain_list_no
+    mountain_picture_response = requests.get(MOUNTAIN_PICTURE_URL, params=MOUNTAIN_PICTURE_PARAMS)
     mountain_picture_response.raise_for_status()
 
     mountain_picture_root = ET.fromstring(mountain_picture_response.text)
-
     for item in mountain_picture_root.iter("item"):
         image_url = 'http://www.forest.go.kr/images/data/down/mountain/' + item.findtext('imgfilename')
         icon_response = requests.get(image_url)
@@ -78,3 +84,4 @@ def mountain_picture(mountain_name):
         return icon_image
 
     return None
+
