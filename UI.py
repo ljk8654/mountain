@@ -139,6 +139,7 @@ class UI:
         selected_index = self.ListBox.curselection()
         if selected_index:
             selected_mountain_name = self.ListBox.get(selected_index)
+            self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
             selected_mountain = next((mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
             if selected_mountain:
                 self.label_2[1].config(text=selected_mountain["Name"])
@@ -171,11 +172,11 @@ class UI:
 
     def open_trail_window(self):
         trail_window = Toplevel(self.window)
-        trail_window.geometry("400x300")
+        trail_window.geometry("800x300")
         trail_window.title("등산로 정보")
-        Label(trail_window, text="등산로 정보", font=self.TempFont).pack(pady=20)
+        Label(trail_window, text="\n".join(textwrap.wrap(self.trail, 16)), font=self.TempFont).pack(pady=20)
         trail_info = Text(trail_window, font=self.TempFont, wrap=WORD, height=10, width=40, bg='lightgreen')
         trail_info.pack(pady=20)
-        trail_info.insert(END, "등산로 정보가 여기에 표시됩니다.")  # Add actual trail information retrieval here
+        trail_info.insert(END, self.trail_detail)  # Add actual trail information retrieval here
 
 UI()

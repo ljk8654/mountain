@@ -7,6 +7,7 @@ from urllib.parse import unquote
 # 상수 정의
 BASE_URL = 'http://apis.data.go.kr/B553662/top100FamtListBasiInfoService/getTop100FamtListBasiInfoList'
 MOUNTAIN_INFO_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2'
+TRAIL_INFO_URL = 'http://api.forest.go.kr/openapi/service/cultureInfoService/gdTrailInfoOpenAPI'
 MOUNTAIN_PICTURE_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoImgOpenAPI2'
 
 # API 키 (디코딩됨)
@@ -16,6 +17,7 @@ SERVICE_KEY = unquote(SERVICE_KEY)
 # API 파라미터
 QUERY_PARAMS = {'serviceKey': SERVICE_KEY, 'pageNo': '1', 'numOfRows': '100', 'type': 'xml'}
 MOUNTAIN_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchWrd': '', 'pageNo': '1', 'numOfRows': '10'}
+TRAIL_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchMtNm': '', 'pageNo': '1', 'numOfRows': '10'}
 MOUNTAIN_PICTURE_PARAMS = {'serviceKey': SERVICE_KEY, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
 
 
@@ -85,3 +87,15 @@ def fetch_mountain_picture(mountain_name):
 
     return None
 
+def fetch_trail_information(mountain_name):
+    # 등산로 정보 API 요청
+    print(mountain_name)
+    TRAIL_INFO_PARAMS['searchMtNm'] = mountain_name
+    trail_info_response = requests.get(TRAIL_INFO_URL, params=TRAIL_INFO_PARAMS)
+    trail_info_response.raise_for_status()
+
+    trail_info_root = ET.fromstring(trail_info_response.text)
+    for item in trail_info_root.iter("item"):
+        return item.findtext('etccourse'),item.findtext('details')  # 등산로와 정보
+
+    return "정보 없음"
