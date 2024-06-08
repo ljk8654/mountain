@@ -38,7 +38,7 @@ def fetch_mountain_data():
             "Lot": float(item.findtext("lot") or 0)
         }
         mountain_data.append(mountain_dict)
-
+    print(mountain_data)
     return mountain_data
 
 
@@ -99,3 +99,5 @@ def fetch_trail_information(mountain_name):
         return item.findtext('etccourse'),item.findtext('details')  # 등산로와 정보
 
     return "정보 없음"
+
+fetch_mountain_data()

@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import font
+from tkinter import messagebox
 from PIL import Image, ImageTk
 import textwrap
 import map_read
@@ -82,6 +83,10 @@ class UI:
         self.label_3.append(Label(self.frame[2], text="위치", font=self.TempFont, bg='green'))
         self.label_3[2].grid(row=2, column=0, sticky='NSEW', columnspan=3)
 
+        trail_image = Image.open('trail.png')
+        trail_image = trail_image.resize((50, 40), Image.LANCZOS)
+        self.trail_photo = ImageTk.PhotoImage(trail_image)
+
         message_image = Image.open('google.png')
         message_image = message_image.resize((50, 40), Image.LANCZOS)
         self.message_photo = ImageTk.PhotoImage(message_image)
@@ -90,12 +95,18 @@ class UI:
         telegram_image = telegram_image.resize((50, 40), Image.LANCZOS)
         self.telegram_photo = ImageTk.PhotoImage(telegram_image)
 
-        self.button1 = Button(self.FOF, text='등산로', command=self.open_trail_window)
+        graph_image = Image.open('graph3.png')
+        graph_image = graph_image.resize((50, 40), Image.LANCZOS)
+        self.graph_photo = ImageTk.PhotoImage(graph_image)
+
+        self.button1 = Button(self.FOF, image=self.trail_photo, command=self.open_trail_window)
         self.button2 = Button(self.FOF, image=self.message_photo, compound="top",command=self.send_mail)
         self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
+        self.button4 = Button(self.FOF, image=self.graph_photo,compound='top',command=self.show_graph)
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
         self.button3.grid(row=2, column=1, sticky='N', padx=5, pady=5)
+        self.button4.grid(row=3, column=1, sticky='N', padx=5, pady=5)
 
     def __init__(self):
         self.window = Tk()
@@ -185,6 +196,50 @@ class UI:
 
     def send_mail(self):
         gmail.sendMain(main_mountain['이름'],main_mountain['산 정보'])
+        messagebox.showinfo(main_mountain['이름'] +' 정보',main_mountain['이름'] +' 정보를 보냈습니다!')
+
+    def show_graph(self):
+        graph_window = Toplevel(self.window)
+        graph_window.geometry("400x300")
+        graph_window.title("산 높이 그래프")
+        canvas = Canvas(graph_window, width=400, height=300)
+        canvas.pack()
+        bar_width = 20
+        x_gap = 10
+        x0 = 30
+        y0 = 200
+        m_l = {1:"300~400",2:"400~500",3:"500~600",4:"600~700",5:"700~800",6:"800~900",7:"900~1000",8:"1000~1100",9:"1100~1200",10:"1200~1300",11:"1300초과"}
+        h_l = [0] * 11
+        for mountain in self.mountains:
+            if 300 < float(mountain['Height']) <= 400:
+                h_l[0] += 1
+            elif 400 < float(mountain['Height']) <= 500:
+                h_l[1] += 1
+            elif 500 < float(mountain['Height']) <= 600:
+                h_l[2] += 1
+            elif 600 < float(mountain['Height']) <= 700:
+                h_l[3] += 1
+            elif 700 < float(mountain['Height']) <= 800:
+                h_l[4]+= 1
+            elif 800 < float(mountain['Height']) <= 900:
+                h_l[5] += 1
+            elif 900 < float(mountain['Height']) <= 1000:
+                h_l[6] += 1
+            elif 1000 < float(mountain['Height']) <= 1100:
+                h_l[7] += 1
+            elif 1100 < float(mountain['Height']) <= 1200:
+                h_l[8] += 1
+            elif 1200 < float(mountain['Height']) <= 1300:
+                h_l[9] += 1
+            else:
+                h_l[10] += 1
+
+        for i in range(len(h_l)):
+            x1 = x0 + i * (bar_width + x_gap)
+            y1 = y0 - 100 * h_l[i]/ max(h_l)
+            canvas.create_rectangle(x1, y1, x1 + bar_width, y0, fill='blue')
+            canvas.create_text(x1 + bar_width / 2, y0 + 50, text=m_l[i+1], anchor='n', angle=90)
+            canvas.create_text(x1 + bar_width / 2, y1 - 10, text=h_l[i], anchor='s')
 
 
 UI()
