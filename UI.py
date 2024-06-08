@@ -6,6 +6,7 @@ import textwrap
 import map_read
 from xmlread import *
 import gmail
+import spam
 
 main_mountain = {"이름":'', "산 정보" : ''}
 class UI:
@@ -27,9 +28,13 @@ class UI:
 
         self.search = Button(self.frame[0], text='검색', width=7, command=self.search_click)
         self.search.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+        self.show_saved_button = Button(self.frame[0], text='저장된 산 정보 보기', width= 7, command=self.show_saved_mountains)
+        self.show_saved_button.grid(row=3, column=2, columnspan=2, padx=5, pady=5)
+
 
         self.label.append(Label(self.frame[0], text="검색 결과", font=self.TempFont, bg='green'))
         self.label[3].grid(row=4, column=0, sticky='NSEW', columnspan=3)
+
 
         self.listbox_frame = Frame(self.frame[0])
         self.listbox_frame.grid(row=5, column=0, columnspan=3, sticky='WE')
@@ -139,22 +144,28 @@ class UI:
             for mountain in self.mountains:
                 if search_name.lower() in mountain["Name"].lower():
                     self.ListBox.insert(END, mountain["Name"])
+                    # 산 정보를 저장
+                    spam.save_info(mountain["Name"], mountain["Location"], int(float(mountain["Height"])))
         elif search_area:
             for mountain in self.mountains:
                 if search_area.lower() in mountain["Location"].lower():
                     self.ListBox.insert(END, mountain["Name"])
+                    # 산 정보를 저장
+                    spam.save_info(mountain["Name"], mountain["Location"], int(float(mountain["Height"])))
         else:
             for mountain in self.mountains:
                 self.ListBox.insert(END, mountain["Name"])
+                # 산 정보를 저장
+                spam.save_info(mountain["Name"], mountain["Location"], int(float(mountain["Height"])))
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
 
     def select_mountain(self, a):
         selected_index = self.ListBox.curselection()
         if selected_index:
             selected_mountain_name = self.ListBox.get(selected_index)
-            main_mountain['이름'] = selected_mountain_name
             self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
-            selected_mountain = next((mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
+            selected_mountain = next(
+                (mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
             if selected_mountain:
                 self.label_2[1].config(text=selected_mountain["Name"])
                 self.label_2[3].config(text=selected_mountain["Location"])
@@ -162,7 +173,6 @@ class UI:
                 self.info_text.config(state=NORMAL)
                 self.info_text.delete(1.0, END)
                 wrapped_description = "\n".join(textwrap.wrap(fetch_mountain_information(selected_mountain_name), 18))
-                main_mountain['산 정보'] = wrapped_description
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
                 image1 = fetch_mountain_picture(selected_mountain_name)
@@ -180,6 +190,9 @@ class UI:
                     image2 = image2.resize((300, 300), Image.LANCZOS)
                     self.p2 = ImageTk.PhotoImage(image2)
                     self.photo2.config(image=self.p2)
+                # 산 정보를 저장
+                spam.save_info(selected_mountain["Name"], selected_mountain["Location"],
+                               int(float(selected_mountain["Height"])))
         else:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
@@ -261,6 +274,23 @@ class UI:
         send_button = Button(email_window, text="보내기",
                              command=lambda: self.send_mail(self.email_entry.get(), email_window))
         send_button.pack(pady=10)
+
+    def show_saved_mountains(self):
+        saved_mountains = spam.get_saved_info()
+        saved_window = Toplevel(self.window)
+        saved_window.title("저장된 산 정보")
+        saved_window.geometry("400x300")
+
+        listbox = Listbox(saved_window, width=50, height=15)
+        listbox.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(saved_window, orient=VERTICAL, command=listbox.yview)
+        listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        for mountain in saved_mountains:
+            mountain_info = f"이름: {mountain['name']}, 위치: {mountain['location']}, 높이: {mountain['height']} m"
+            listbox.insert(END, mountain_info)
 
 
 UI()
