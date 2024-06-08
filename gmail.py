@@ -60,13 +60,24 @@ def extractBookData(strXml):
             return {"ISBN": isbn.text, "title": strTitle.text}
 
 
-def sendMain(name,m_info):
+def sendMain(name, m_info, email, location, height):
     global host, port
     title = name
     senderAddr = 'leejungkeuen@gmail.com'
-    recipientAddr = 'ljk8654@naver.com'
+    recipientAddr = email
     passwd = 'nsrq nopj ghxo zqxi'
-    html = name +' 정보: ' + m_info # 산 정보 입력
+
+    html = f"""
+    <html>
+    <body>
+        <h2>{name} 정보</h2>
+        <p><strong>산 이름:</strong> {name}</p>
+        <p><strong>지역:</strong> {location}</p>
+        <p><strong>해발고도:</strong> {height} M</p>
+        <p><strong>산 정보:</strong> {m_info}</p>
+    </body>
+    </html>
+    """
 
     import mysmtplib
     # MIMEMultipart의 MIME을 생성합니다.
@@ -92,8 +103,9 @@ def sendMain(name,m_info):
     s.ehlo()
     s.starttls()
     s.ehlo()
-    s.login(senderAddr, passwd)  # 로긴을 합니다. 
+    s.login(senderAddr, passwd)  # 로긴을 합니다.
     s.sendmail(senderAddr, [recipientAddr], msg.as_string())
     s.close()
 
     print("Mail sending complete!!!")
+

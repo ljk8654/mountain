@@ -100,7 +100,7 @@ class UI:
         self.graph_photo = ImageTk.PhotoImage(graph_image)
 
         self.button1 = Button(self.FOF, image=self.trail_photo, command=self.open_trail_window)
-        self.button2 = Button(self.FOF, image=self.message_photo, compound="top",command=self.send_mail)
+        self.button2 = Button(self.FOF, image=self.message_photo, compound="top", command=self.open_email_window)
         self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
         self.button4 = Button(self.FOF, image=self.graph_photo,compound='top',command=self.show_graph)
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
@@ -194,9 +194,19 @@ class UI:
         trail_info.pack(pady=20)
         trail_info.insert(END, self.trail_detail)  # Add actual trail information retrieval here
 
-    def send_mail(self):
-        gmail.sendMain(main_mountain['이름'],main_mountain['산 정보'])
-        messagebox.showinfo(main_mountain['이름'] +' 정보',main_mountain['이름'] +' 정보를 보냈습니다!')
+    def send_mail(self, email, window):
+        if email:
+            gmail.sendMain(
+                main_mountain['이름'],
+                main_mountain['산 정보'],
+                email,
+                self.label_2[3].cget("text"),  # 지역명
+                self.label_2[5].cget("text").split()[0]  # 해발고도 (숫자만 추출)
+            )
+            messagebox.showinfo(main_mountain['이름'] + ' 정보', main_mountain['이름'] + ' 정보를 ' + email + '로 보냈습니다!')
+            window.destroy()
+        else:
+            messagebox.showerror('오류', '이메일 주소를 입력하세요!')
 
     def show_graph(self):
         graph_window = Toplevel(self.window)
@@ -240,6 +250,17 @@ class UI:
             canvas.create_rectangle(x1, y1, x1 + bar_width, y0, fill='blue')
             canvas.create_text(x1 + bar_width / 2, y0 + 50, text=m_l[i+1], anchor='n', angle=90)
             canvas.create_text(x1 + bar_width / 2, y1 - 10, text=h_l[i], anchor='s')
+
+    def open_email_window(self):
+        email_window = Toplevel(self.window)
+        email_window.geometry("300x200")
+        email_window.title("이메일 입력")
+        Label(email_window, text="이메일 주소를 입력하세요:", font=self.TempFont).pack(pady=20)
+        self.email_entry = Entry(email_window, width=25, font=self.TempFont)
+        self.email_entry.pack(pady=10)
+        send_button = Button(email_window, text="보내기",
+                             command=lambda: self.send_mail(self.email_entry.get(), email_window))
+        send_button.pack(pady=10)
 
 
 UI()
