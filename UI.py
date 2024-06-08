@@ -4,8 +4,9 @@ from PIL import Image, ImageTk
 import textwrap
 import map_read
 from xmlread import *
+import gmail
 
-
+main_mountain = {"이름":'', "산 정보" : ''}
 class UI:
     def Frame_1(self):
         self.label.append(Label(self.frame[0], text="정보 입력", font=self.TempFont, bg='green'))
@@ -64,6 +65,7 @@ class UI:
 
         self.info_text.config(state=DISABLED)
 
+
     def Frame_3(self):
         self.FOF = Frame(self.frame[2], bg='lightgreen')
         self.FOF.grid(row=1, column=1, sticky='WE')
@@ -89,7 +91,7 @@ class UI:
         self.telegram_photo = ImageTk.PhotoImage(telegram_image)
 
         self.button1 = Button(self.FOF, text='등산로', command=self.open_trail_window)
-        self.button2 = Button(self.FOF, image=self.message_photo, compound="top")
+        self.button2 = Button(self.FOF, image=self.message_photo, compound="top",command=self.send_mail)
         self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
@@ -139,6 +141,7 @@ class UI:
         selected_index = self.ListBox.curselection()
         if selected_index:
             selected_mountain_name = self.ListBox.get(selected_index)
+            main_mountain['이름'] = selected_mountain_name
             self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
             selected_mountain = next((mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
             if selected_mountain:
@@ -148,6 +151,7 @@ class UI:
                 self.info_text.config(state=NORMAL)
                 self.info_text.delete(1.0, END)
                 wrapped_description = "\n".join(textwrap.wrap(fetch_mountain_information(selected_mountain_name), 18))
+                main_mountain['산 정보'] = wrapped_description
                 self.info_text.insert(END, wrapped_description)
                 self.info_text.config(state=DISABLED)
                 image1 = fetch_mountain_picture(selected_mountain_name)
@@ -178,5 +182,9 @@ class UI:
         trail_info = Text(trail_window, font=self.TempFont, wrap=WORD, height=10, width=40, bg='lightgreen')
         trail_info.pack(pady=20)
         trail_info.insert(END, self.trail_detail)  # Add actual trail information retrieval here
+
+    def send_mail(self):
+        gmail.sendMain(main_mountain['이름'],main_mountain['산 정보'])
+
 
 UI()
