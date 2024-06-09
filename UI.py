@@ -12,7 +12,7 @@ main_mountain = {"이름":'', "산 정보" : ''}
 class UI:
     def Frame_1(self):
         self.label.append(Label(self.frame[0], text="정보 입력", font=self.TempFont, bg='green'))
-        self.label[0].grid(row=0, column=0, sticky='NSEW', columnspan=3)
+        self.label[0].grid(row=0, column=0, sticky='NSEW', columnspan=4)
 
         self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont))
         self.label[1].grid(row=1, column=0, sticky='WN', padx=(5, 0), pady=5)
@@ -26,18 +26,19 @@ class UI:
         self.entry2 = Entry(self.frame[0], width=15, font=self.TempFont)
         self.entry2.grid(row=2, column=1, sticky='NW', padx=5, pady=5)
 
-        self.search = Button(self.frame[0], text='검색', width=7, command=self.search_click)
-        self.search.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
-        self.show_saved_button = Button(self.frame[0], text='저장된 산 정보 보기', width= 7, command=self.show_saved_mountains)
-        self.show_saved_button.grid(row=3, column=2, columnspan=2, padx=5, pady=5)
+        # 검색 버튼
+        self.search = Button(self.frame[0], text='검색', width=5, command=self.search_click)
+        self.search.grid(row=3, column=1, columnspan=1, padx=5, pady=5, sticky='W')
 
+        # + 버튼 추가
+        self.add_button = Button(self.frame[0], text='+', command=self.add_mountain)
+        self.add_button.grid(row=3, column=1, padx=5, pady=5, sticky='E')
 
         self.label.append(Label(self.frame[0], text="검색 결과", font=self.TempFont, bg='green'))
-        self.label[3].grid(row=4, column=0, sticky='NSEW', columnspan=3)
-
+        self.label[3].grid(row=4, column=0, sticky='NSEW', columnspan=4)
 
         self.listbox_frame = Frame(self.frame[0])
-        self.listbox_frame.grid(row=5, column=0, columnspan=3, sticky='WE')
+        self.listbox_frame.grid(row=5, column=0, columnspan=4, sticky='WE')
         self.ListBox = Listbox(self.listbox_frame, height=30, width=20)
         self.scrollbar = Scrollbar(self.listbox_frame, orient=VERTICAL, command=self.ListBox.yview)
         self.ListBox.config(yscrollcommand=self.scrollbar.set)
@@ -159,44 +160,22 @@ class UI:
                 spam.save_info(mountain["Name"], mountain["Location"], int(float(mountain["Height"])))
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
 
-    def select_mountain(self, a):
-        selected_index = self.ListBox.curselection()
-        if selected_index:
-            selected_mountain_name = self.ListBox.get(selected_index)
-            self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
-            selected_mountain = next(
-                (mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
-            if selected_mountain:
-                self.label_2[1].config(text=selected_mountain["Name"])
-                self.label_2[3].config(text=selected_mountain["Location"])
-                self.label_2[5].config(text=f"{selected_mountain['Height']} M")
-                self.info_text.config(state=NORMAL)
-                self.info_text.delete(1.0, END)
-                wrapped_description = "\n".join(textwrap.wrap(fetch_mountain_information(selected_mountain_name), 18))
-                self.info_text.insert(END, wrapped_description)
-                self.info_text.config(state=DISABLED)
-                image1 = fetch_mountain_picture(selected_mountain_name)
-                if image1:
-                    image1 = image1.resize((300, 200), Image.LANCZOS)
-                    self.p = ImageTk.PhotoImage(image1)
-                    self.photo.config(image=self.p)
-                else:
-                    image1 = Image.open('mountain01.png')
-                    image1 = image1.resize((300, 200), Image.LANCZOS)
-                    self.p = ImageTk.PhotoImage(image1)
-                    self.photo.config(image=self.p)
-                image2 = map_read.update_map(selected_mountain)
-                if image2:
-                    image2 = image2.resize((300, 300), Image.LANCZOS)
-                    self.p2 = ImageTk.PhotoImage(image2)
-                    self.photo2.config(image=self.p2)
-                # 산 정보를 저장
-                spam.save_info(selected_mountain["Name"], selected_mountain["Location"],
-                               int(float(selected_mountain["Height"])))
+    def search_click(self):
+        self.ListBox.delete(0, END)
+        search_name = self.entry1.get()
+        search_area = self.entry2.get()
+        if search_name:
+            for mountain in self.mountains:
+                if search_name.lower() in mountain["Name"].lower():
+                    self.ListBox.insert(END, mountain["Name"])
+        elif search_area:
+            for mountain in self.mountains:
+                if search_area.lower() in mountain["Location"].lower():
+                    self.ListBox.insert(END, mountain["Name"])
         else:
-            for label in self.label_2[1:]:
-                if self.label_2.index(label) % 2 == 1:
-                    label.config(text="결과 없음")
+            for mountain in self.mountains:
+                self.ListBox.insert(END, mountain["Name"])
+        self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
 
     def open_trail_window(self):
         trail_window = Toplevel(self.window)
@@ -207,16 +186,24 @@ class UI:
         trail_info.pack(pady=20)
         trail_info.insert(END, self.trail_detail)  # Add actual trail information retrieval here
 
-    def send_mail(self, email, window):
+    def send_mail(self, email, window, saved_mountains):
         if email:
+            mountain_info = ""
+            for mountain in saved_mountains:
+                mountain_info += (
+                    f"<strong>산 이름:</strong> {mountain['name']}<br>"
+                    f"<strong>주소:</strong> {mountain['location']}<br>"
+                    f"<strong>해발고도:</strong> {mountain['height']} m<br>"
+                    f"<strong>산 정보:</strong> {fetch_mountain_information(mountain['name'])}<br><br>"
+                )
+
+            # 이메일 보내기
             gmail.sendMain(
-                main_mountain['이름'],
-                main_mountain['산 정보'],
-                email,
-                self.label_2[3].cget("text"),  # 지역명
-                self.label_2[5].cget("text").split()[0]  # 해발고도 (숫자만 추출)
+                "저장된 산 정보",
+                mountain_info,
+                email
             )
-            messagebox.showinfo(main_mountain['이름'] + ' 정보', main_mountain['이름'] + ' 정보를 ' + email + '로 보냈습니다!')
+            messagebox.showinfo('저장된 산 정보', '저장된 산 정보를 ' + email + '로 보냈습니다!')
             window.destroy()
         else:
             messagebox.showerror('오류', '이메일 주소를 입력하세요!')
@@ -272,7 +259,8 @@ class UI:
         self.email_entry = Entry(email_window, width=25, font=self.TempFont)
         self.email_entry.pack(pady=10)
         send_button = Button(email_window, text="보내기",
-                             command=lambda: self.send_mail(self.email_entry.get(), email_window))
+                             command=lambda: self.send_mail(self.email_entry.get(), email_window,
+                                                            spam.get_saved_info()))
         send_button.pack(pady=10)
 
     def show_saved_mountains(self):
@@ -291,6 +279,56 @@ class UI:
         for mountain in saved_mountains:
             mountain_info = f"이름: {mountain['name']}, 위치: {mountain['location']}, 높이: {mountain['height']} m"
             listbox.insert(END, mountain_info)
+
+    def add_mountain(self):
+        selected_index = self.ListBox.curselection()
+        if selected_index:
+            selected_mountain_name = self.ListBox.get(selected_index)
+            selected_mountain = next(
+                (mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
+            if selected_mountain:
+                # 산 정보를 저장
+                spam.save_info(selected_mountain["Name"], selected_mountain["Location"],
+                               int(float(selected_mountain["Height"])))
+                messagebox.showinfo("저장 완료", f"{selected_mountain['Name']} 정보가 저장되었습니다!")
+        else:
+            messagebox.showwarning("선택 오류", "저장할 산을 선택하세요.")
+
+    def select_mountain(self, event):
+        selected_index = self.ListBox.curselection()
+        if selected_index:
+            selected_mountain_name = self.ListBox.get(selected_index)
+            self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
+            selected_mountain = next(
+                (mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
+            if selected_mountain:
+                self.label_2[1].config(text=selected_mountain["Name"])
+                self.label_2[3].config(text=selected_mountain["Location"])
+                self.label_2[5].config(text=f"{selected_mountain['Height']} M")
+                self.info_text.config(state=NORMAL)
+                self.info_text.delete(1.0, END)
+                wrapped_description = "\n".join(textwrap.wrap(fetch_mountain_information(selected_mountain_name), 18))
+                self.info_text.insert(END, wrapped_description)
+                self.info_text.config(state=DISABLED)
+                image1 = fetch_mountain_picture(selected_mountain_name)
+                if image1:
+                    image1 = image1.resize((300, 200), Image.LANCZOS)
+                    self.p = ImageTk.PhotoImage(image1)
+                    self.photo.config(image=self.p)
+                else:
+                    image1 = Image.open('mountain01.png')
+                    image1 = image1.resize((300, 200), Image.LANCZOS)
+                    self.p = ImageTk.PhotoImage(image1)
+                    self.photo.config(image=self.p)
+                image2 = map_read.update_map(selected_mountain)
+                if image2:
+                    image2 = image2.resize((300, 300), Image.LANCZOS)
+                    self.p2 = ImageTk.PhotoImage(image2)
+                    self.photo2.config(image=self.p2)
+        else:
+            for label in self.label_2[1:]:
+                if self.label_2.index(label) % 2 == 1:
+                    label.config(text="결과 없음")
 
 
 UI()

@@ -60,9 +60,8 @@ def extractBookData(strXml):
             return {"ISBN": isbn.text, "title": strTitle.text}
 
 
-def sendMain(name, m_info, email, location, height):
+def sendMain(title, m_info, email):
     global host, port
-    title = name
     senderAddr = 'leejungkeuen@gmail.com'
     recipientAddr = email
     passwd = 'nsrq nopj ghxo zqxi'
@@ -70,11 +69,8 @@ def sendMain(name, m_info, email, location, height):
     html = f"""
     <html>
     <body>
-        <h2>{name} 정보</h2>
-        <p><strong>산 이름:</strong> {name}</p>
-        <p><strong>지역:</strong> {location}</p>
-        <p><strong>해발고도:</strong> {height} M</p>
-        <p><strong>산 정보:</strong> {m_info}</p>
+        <h2>{title}</h2>
+        <p>{m_info}</p>
     </body>
     </html>
     """
