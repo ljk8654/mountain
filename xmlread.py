@@ -98,5 +98,3 @@ def fetch_trail_information(mountain_name):
         return item.findtext('etccourse'),item.findtext('details')  # 등산로와 정보
 
     return "정보 없음"
-
-fetch_mountain_data()

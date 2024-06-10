@@ -7,6 +7,9 @@ import map_read
 from xmlread import *
 import gmail
 import spam
+import subprocess
+
+
 
 main_mountain = {"이름":'', "산 정보" : ''}
 class UI:
@@ -107,8 +110,8 @@ class UI:
 
         self.button1 = Button(self.FOF, image=self.trail_photo, command=self.open_trail_window)
         self.button2 = Button(self.FOF, image=self.message_photo, compound="top", command=self.open_email_window)
-        self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top")
-        self.button4 = Button(self.FOF, image=self.graph_photo,compound='top',command=self.show_graph)
+        self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top", command=self.on_telegram_button_click)
+        self.button4 = Button(self.FOF, image=self.graph_photo, compound='top', command=self.show_graph)
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
         self.button3.grid(row=2, column=1, sticky='N', padx=5, pady=5)
@@ -389,6 +392,15 @@ class UI:
             for label in self.label_2[1:]:
                 if self.label_2.index(label) % 2 == 1:
                     label.config(text="결과 없음")
+
+    def on_telegram_button_click(self):
+        try:
+            # noti.py와 teller.py 스크립트 실행
+            subprocess.Popen(['python', 'noti.py'])
+            subprocess.Popen(['python', 'teller.py'])
+            messagebox.showinfo('텔레그램', '텔레그램 챗봇과 연결되었습니다.')
+        except Exception as e:
+            messagebox.showerror('오류', f'텔레그램 챗봇 연결에 실패했습니다: {e}')
 
 
 UI()
