@@ -117,6 +117,7 @@ class UI:
     def __init__(self):
         self.window = Tk()
         self.window.geometry("830x600")
+        self.window.title('명산 정보통')
         self.TempFont = font.Font(size=10, weight='bold', family='Consolas')
         self.label = []
         self.label_2 = []
