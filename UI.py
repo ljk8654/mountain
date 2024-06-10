@@ -117,7 +117,6 @@ class UI:
     def __init__(self):
         self.window = Tk()
         self.window.geometry("830x600")
-        self.window.title('명산정보통')
         self.TempFont = font.Font(size=10, weight='bold', family='Consolas')
         self.label = []
         self.label_2 = []
@@ -179,13 +178,71 @@ class UI:
         self.ListBox.bind("<<ListboxSelect>>", self.select_mountain)
 
     def open_trail_window(self):
-        trail_window = Toplevel(self.window)
-        trail_window.geometry("800x300")
+
+        self.saved_mountains = spam.get_saved_info()
+        selected_index = self.ListBox.curselection()
+        self.save_mountain_name = self.ListBox.get(selected_index)
+
+
+        trail_window = Toplevel(self.window,bg='lightgreen')
+        trail_window.geometry("420x600")
         trail_window.title("등산로 정보")
-        Label(trail_window, text="\n".join(textwrap.wrap(self.trail, 16)), font=self.TempFont).pack(pady=20)
-        trail_info = Text(trail_window, font=self.TempFont, wrap=WORD, height=10, width=40, bg='lightgreen')
-        trail_info.pack(pady=20)
-        trail_info.insert(END, self.trail_detail)  # Add actual trail information retrieval here
+        Save_Frame_LEFT = Frame(trail_window,bg='lightgreen')
+        Save_Frame_LEFT.grid(row=0, column=0, sticky='NSEW')
+        Save_Frame_RIGHT = Frame(trail_window,bg='lightgreen')
+        Save_Frame_RIGHT.grid(row=0, column=1, sticky='NSEW')
+        Save_Moutain_Name = Label(Save_Frame_LEFT, text="저장된 산", font=self.TempFont,bg='green')
+        Save_Moutain_Name.grid(row=0, column=0, padx=(10,10), sticky="nsew",columnspan=1)
+
+        self.Save_ListBox = Listbox(Save_Frame_LEFT, height=30, width=20)
+        self.Save_ListBox.grid(row=1, column=0, padx=10, sticky="nw")
+        for mountain in self.saved_mountains:
+            self.Save_ListBox.insert(END,f"{mountain['name']}")
+
+        save_mountain_label = Label(Save_Frame_RIGHT, text='산 이름', font=self.TempFont,bg='green')
+        save_mountain_label.grid(row=0, column=0, padx=10, sticky="nsew", columnspan=1)
+
+        self.save_mountain_label_info = Label(Save_Frame_RIGHT, text=self.save_mountain_name, font=self.TempFont, bg='lightgreen')
+        self.save_mountain_label_info.grid(row=1, column=0, sticky="nsew", columnspan=1)
+
+        trail = Label(Save_Frame_RIGHT, text='등산로', font=self.TempFont,bg='green')
+        trail.grid(row=2, column=0, padx=10, sticky="nsew",columnspan=1)
+        wrapped_text = "\n".join(textwrap.wrap(self.trail, 20))
+        self.trail_label = Label(Save_Frame_RIGHT, text=wrapped_text, font=self.TempFont,bg='green')
+        self.trail_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew",columnspan=1)
+
+        trail_info_label = Label(Save_Frame_RIGHT, text='등산로 설명', font=self.TempFont, bg='lightgreen')
+        trail_info_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew", columnspan=1)
+
+        info_frame = Frame(Save_Frame_RIGHT,bg='lightgreen')
+        info_frame.grid(row=5, column=0, sticky='NSEW', columnspan=3)
+
+        wrapped_text = "\n".join(textwrap.wrap(self.trail_detail, 16))
+        self.trail_info = Text(info_frame,font=self.TempFont,wrap=WORD,height=10, width=30, bg='lightgreen')
+        self.trail_info.grid(row=0, column=0, padx=10, pady=10, sticky="n")
+
+        save_scrollbar = Scrollbar(info_frame, orient=VERTICAL, command=self.trail_info.yview,bg='lightgreen')
+        self.trail_info.config(yscrollcommand=save_scrollbar.set)
+        save_scrollbar.grid(row=0, column=1, sticky='NS')
+        self.trail_info.insert(END, wrapped_text)
+
+        self.Save_ListBox.bind("<<ListboxSelect>>", self.save_mountain_select)
+
+
+    def save_mountain_select(self,event):
+        selected_index = self.Save_ListBox.curselection()
+        selected_mountain_name = self.Save_ListBox.get(selected_index)
+        self.save_mountain_name = self.Save_ListBox.get(selected_index)
+        self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
+        wrapped_text = "\n".join(textwrap.wrap(self.trail, 16))
+        self.trail_label.config(text=wrapped_text)
+        self.trail_info.config(state=NORMAL)
+        self.trail_info.delete(1.0, END)
+        wrapped_description = "\n".join(textwrap.wrap(self.trail_detail, 18))
+        self.trail_info.insert(END, wrapped_description)
+        self.trail_info.config(state=DISABLED)
+        self.save_mountain_label_info.config(text=self.save_mountain_name)
+
 
     def send_mail(self, email, window, saved_mountains):
         if email:
@@ -287,6 +344,7 @@ class UI:
             selected_mountain_name = self.ListBox.get(selected_index)
             selected_mountain = next(
                 (mountain for mountain in self.mountains if mountain["Name"] == selected_mountain_name), None)
+
             if selected_mountain:
                 # 산 정보를 저장
                 spam.save_info(selected_mountain["Name"], selected_mountain["Location"],

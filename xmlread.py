@@ -89,7 +89,6 @@ def fetch_mountain_picture(mountain_name):
 
 def fetch_trail_information(mountain_name):
     # 등산로 정보 API 요청
-    print(mountain_name)
     TRAIL_INFO_PARAMS['searchMtNm'] = mountain_name
     trail_info_response = requests.get(TRAIL_INFO_URL, params=TRAIL_INFO_PARAMS)
     trail_info_response.raise_for_status()
