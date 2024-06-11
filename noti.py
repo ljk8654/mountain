@@ -19,7 +19,7 @@ TRAIL_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchMtNm': '', 'pageNo': '1',
 MOUNTAIN_PICTURE_PARAMS = {'serviceKey': SERVICE_KEY, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
 POI_PARAMS = {'serviceKey': SERVICE_KEY, 'srchFrtrlNm': '', 'pageNo': '1', 'numOfRows': '100', 'type': 'xml'}
 
-bot = telepot.Bot(TOKEN)  # bot 객체 정의
+bot = telepot.Bot(TOKEN)
 
 def getMountainInfo(name_param):
     res_list = []
@@ -30,8 +30,8 @@ def getMountainInfo(name_param):
 
     for item in root.iter("item"):
         mountain_name = item.findtext("mntiname", default="N/A")
-        height = item.findtext("mntiheight", default="N/A")
-        location = item.findtext("mntiadmin", default="N/A")
+        height = item.findtext("mntihigh", default="N/A")  # 'mntiheight'가 아닌 'mntihigh'
+        location = item.findtext("mntiadd", default="N/A")  # 'mntiadmin'이 아닌 'mntiadd'
         description = item.findtext("mntidetails", default="N/A")
         res_list.append(f"산 이름: {mountain_name}, 높이: {height}m, 위치: {location}, 특징: {description}")
     return res_list
@@ -44,10 +44,10 @@ def getTrailInfo(name_param):
     root = ET.fromstring(response.content)
 
     for item in root.iter("item"):
-        trail_name = item.findtext("mntiname", default="N/A")
-        trail_length = item.findtext("mtlength", default="N/A")
-        trail_time = item.findtext("usetime", default="N/A")
-        res_list.append(f"등산로 이름: {trail_name}, 길이: {trail_length}km, 소요 시간: {trail_time}")
+        trail_name = item.findtext("mntnm", default="N/A")  # 'mntiname'이 아닌 'mntnm'
+        trail_length = item.findtext("mntheight", default="N/A")  # 'mtlength'가 아닌 'mntheight'
+        trail_time = item.findtext("etccourse", default="N/A")  # 'usetime'이 아닌 'etccourse'
+        res_list.append(f"등산로 이름: {trail_name}, 높이: {trail_length}m, 등산로 코스: {trail_time}")
     return res_list
 
 def getMountainPicture(name_param):
