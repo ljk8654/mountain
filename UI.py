@@ -10,21 +10,21 @@ import spam
 import subprocess
 import tkinter.ttk
 
+main_mountain = {"이름": '', "산 정보": ''}
 
 
-main_mountain = {"이름":'', "산 정보" : ''}
 class UI:
     def Frame_1(self):
         self.label.append(Label(self.frame[0], text="정보 입력", font=self.TempFont, bg='green'))
         self.label[0].grid(row=0, column=0, sticky='NSEW', columnspan=4)
 
-        self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont,bg='lightgreen'))
+        self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont, bg='lightgreen'))
         self.label[1].grid(row=1, column=0, sticky='WN', padx=(5, 0), pady=5)
 
         self.entry1 = Entry(self.frame[0], width=15, font=self.TempFont)
         self.entry1.grid(row=1, column=1, sticky='WN', pady=5, padx=5)
 
-        self.label.append(Label(self.frame[0], text="지역명", font=self.TempFont,bg='lightgreen'))
+        self.label.append(Label(self.frame[0], text="지역명", font=self.TempFont, bg='lightgreen'))
         self.label[2].grid(row=2, column=0, sticky='WN', padx=(5, 0), pady=5)
 
         self.entry2 = Entry(self.frame[0], width=15, font=self.TempFont)
@@ -76,7 +76,6 @@ class UI:
 
         self.info_text.config(state=DISABLED)
 
-
     def Frame_3(self):
         self.FOF = Frame(self.frame[2], bg='lightgreen')
         self.FOF.grid(row=1, column=1, sticky='WE')
@@ -111,7 +110,8 @@ class UI:
 
         self.button1 = Button(self.FOF, image=self.trail_photo, command=self.open_trail_window)
         self.button2 = Button(self.FOF, image=self.message_photo, compound="top", command=self.open_email_window)
-        self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top", command=self.on_telegram_button_click)
+        self.button3 = Button(self.FOF, image=self.telegram_photo, compound="top",
+                              command=self.on_telegram_button_click)
         self.button4 = Button(self.FOF, image=self.graph_photo, compound='top', command=self.show_graph)
         self.button1.grid(row=0, column=1, sticky='N', padx=5, pady=5)
         self.button2.grid(row=1, column=1, sticky='N', padx=5, pady=5)
@@ -188,46 +188,44 @@ class UI:
         selected_index = self.ListBox.curselection()
         self.save_mountain_name = self.ListBox.get(selected_index)
 
-
-        trail_window = Toplevel(self.window,bg='lightgreen')
+        trail_window = Toplevel(self.window, bg='lightgreen')
         trail_window.geometry("440x600")
         trail_window.title("등산로 정보")
-        Save_Frame_LEFT = Frame(trail_window,bg='lightgreen')
+        Save_Frame_LEFT = Frame(trail_window, bg='lightgreen')
         Save_Frame_LEFT.grid(row=0, column=0, sticky='NSEW')
-        Save_Frame_RIGHT = Frame(trail_window,bg='lightgreen')
+        Save_Frame_RIGHT = Frame(trail_window, bg='lightgreen')
         Save_Frame_RIGHT.grid(row=0, column=1, sticky='NSEW')
-        Save_Moutain_Name = Label(Save_Frame_LEFT, text="저장된 산", font=self.TempFont,bg='green')
-        Save_Moutain_Name.grid(row=0, column=0, padx=(10,10), sticky="nsew",columnspan=1)
+        Save_Moutain_Name = Label(Save_Frame_LEFT, text="저장된 산", font=self.TempFont, bg='green')
+        Save_Moutain_Name.grid(row=0, column=0, padx=(10, 10), sticky="nsew", columnspan=1)
 
         self.Save_ListBox = Listbox(Save_Frame_LEFT, height=30, width=20)
         self.Save_ListBox.grid(row=1, column=0, padx=10, sticky="nw")
         for mountain in self.saved_mountains:
-            self.Save_ListBox.insert(END,f"{mountain['name']}")
+            self.Save_ListBox.insert(END, f"{mountain['name']}")
 
-        save_mountain_label = Label(Save_Frame_RIGHT, text='산 이름', font=self.TempFont,bg='green')
+        save_mountain_label = Label(Save_Frame_RIGHT, text='산 이름', font=self.TempFont, bg='green')
         save_mountain_label.grid(row=0, column=0, padx=10, sticky="nsew", columnspan=1)
 
-        self.save_mountain_label_info = Label(Save_Frame_RIGHT, text=self.save_mountain_name, font=self.TempFont, bg='lightgreen')
+        self.save_mountain_label_info = Label(Save_Frame_RIGHT, text=self.save_mountain_name, font=self.TempFont,
+                                              bg='lightgreen')
         self.save_mountain_label_info.grid(row=1, column=0, sticky="nsew", columnspan=1)
 
-        # Create a notebook widget
         notebook = tkinter.ttk.Notebook(Save_Frame_RIGHT)
-        notebook.grid(row=2, column=0, sticky='NSEW', columnspan=1)  # Position the notebook
+        notebook.grid(row=2, column=0, sticky='NSEW', columnspan=1)
 
-        # Create frames (pages) for the notebook
         trail_frame = Frame(notebook, bg='lightgreen')
-        map_frame = Frame(notebook, bg='lightgreen')  # Add a map frame (optional)
+        map_frame = Frame(notebook, bg='lightgreen')
 
-        # Add frames to the notebook
         notebook.add(trail_frame, text='등산로')
-        notebook.add(map_frame, text='문화자원')  # Add map tab (optional)
+        notebook.add(map_frame, text='문화자원')
 
         wrapped_text = "\n".join(textwrap.wrap(self.trail, 20))
-        self.trail_label = Label(trail_frame, text=wrapped_text, font=self.TempFont,bg='lightgreen')
-        self.trail_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew",columnspan=1)
+        self.trail_label = Label(trail_frame, text=wrapped_text, font=self.TempFont, bg='lightgreen')
+        self.trail_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew", columnspan=1)
 
-        self.POI_label = Label(map_frame, text="\n".join(textwrap.wrap(fetch_POI(self.save_mountain_name),18)), font=self.TempFont,bg='lightgreen')
-        self.POI_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew",columnspan=1)
+        self.POI_label = Label(map_frame, text="\n".join(textwrap.wrap(fetch_POI(self.save_mountain_name), 18)),
+                               font=self.TempFont, bg='lightgreen')
+        self.POI_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew", columnspan=1)
 
         trail_info_label = Label(Save_Frame_RIGHT, text='등산로 설명', font=self.TempFont, bg='lightgreen')
         trail_info_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew", columnspan=1)
@@ -246,12 +244,10 @@ class UI:
 
         self.Save_ListBox.bind("<<ListboxSelect>>", self.save_mountain_select)
 
-
-    def save_mountain_select(self,event):
+    def save_mountain_select(self, event):
         selected_index = self.Save_ListBox.curselection()
         selected_mountain_name = self.Save_ListBox.get(selected_index)
         self.save_mountain_name = self.Save_ListBox.get(selected_index)
-        print(self.save_mountain_name)
         self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
         wrapped_text = "\n".join(textwrap.wrap(self.trail, 16))
         self.trail_label.config(text=wrapped_text)
@@ -263,7 +259,6 @@ class UI:
         self.trail_info.insert(END, wrapped_description)
         self.trail_info.config(state=DISABLED)
         self.save_mountain_label_info.config(text=self.save_mountain_name)
-
 
     def send_mail(self, email, window, saved_mountains):
         if email:
@@ -297,7 +292,8 @@ class UI:
         x_gap = 10
         x0 = 30
         y0 = 200
-        m_l = {1:"300~400",2:"400~500",3:"500~600",4:"600~700",5:"700~800",6:"800~900",7:"900~1000",8:"1000~1100",9:"1100~1200",10:"1200~1300",11:"1300초과"}
+        m_l = {1: "300~400", 2: "400~500", 3: "500~600", 4: "600~700", 5: "700~800", 6: "800~900", 7: "900~1000",
+               8: "1000~1100", 9: "1100~1200", 10: "1200~1300", 11: "1300초과"}
         h_l = [0] * 11
         for mountain in self.mountains:
             if 300 < float(mountain['Height']) <= 400:
@@ -309,7 +305,7 @@ class UI:
             elif 600 < float(mountain['Height']) <= 700:
                 h_l[3] += 1
             elif 700 < float(mountain['Height']) <= 800:
-                h_l[4]+= 1
+                h_l[4] += 1
             elif 800 < float(mountain['Height']) <= 900:
                 h_l[5] += 1
             elif 900 < float(mountain['Height']) <= 1000:
@@ -325,9 +321,9 @@ class UI:
 
         for i in range(len(h_l)):
             x1 = x0 + i * (bar_width + x_gap)
-            y1 = y0 - 100 * h_l[i]/ max(h_l)
+            y1 = y0 - 100 * h_l[i] / max(h_l)
             canvas.create_rectangle(x1, y1, x1 + bar_width, y0, fill='blue')
-            canvas.create_text(x1 + bar_width / 2, y0 + 50, text=m_l[i+1], anchor='n', angle=90)
+            canvas.create_text(x1 + bar_width / 2, y0 + 50, text=m_l[i + 1], anchor='n', angle=90)
             canvas.create_text(x1 + bar_width / 2, y1 - 10, text=h_l[i], anchor='s')
 
     def open_email_window(self):

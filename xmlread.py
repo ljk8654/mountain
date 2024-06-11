@@ -19,7 +19,7 @@ QUERY_PARAMS = {'serviceKey': SERVICE_KEY, 'pageNo': '1', 'numOfRows': '100', 't
 MOUNTAIN_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchWrd': '', 'pageNo': '1', 'numOfRows': '10'}
 TRAIL_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchMtNm': '', 'pageNo': '1', 'numOfRows': '10'}
 MOUNTAIN_PICTURE_PARAMS = {'serviceKey': SERVICE_KEY, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
-POI_PARAMS = {'serviceKey': SERVICE_KEY, 'srchFrtrlNm': '', 'pageNo': '1', 'numOfRows': '100','type':'xml'}
+POI_PARAMS = {'serviceKey': SERVICE_KEY, 'srchFrtrlNm': '', 'pageNo': '1', 'numOfRows': '100', 'type': 'xml'}
 
 
 def fetch_mountain_data():
@@ -39,7 +39,6 @@ def fetch_mountain_data():
             "Lot": float(item.findtext("lot") or 0)
         }
         mountain_data.append(mountain_dict)
-    print(mountain_data)
     return mountain_data
 
 
@@ -55,13 +54,15 @@ def fetch_mountain_information(mountain_name):
         return item.findtext('mntidetails')
 
     return "정보 없음"
+
+
 def fetch_POI(mountain_name):
-    # 산 정보 API 요청
+    # POI 정보 API 요청
     POI_PARAMS['srchFrtrlNm'] = mountain_name
     POI_response = requests.get(POI_URL, params=POI_PARAMS)
     POI_response.raise_for_status()
-    POI_l =[]
-    text =''
+    POI_l = []
+    text = ''
     POI_root = ET.fromstring(POI_response.text)
     for item in POI_root.iter("item"):
         POI_l.append(item.findtext('placeNm'))
@@ -109,6 +110,7 @@ def fetch_mountain_picture(mountain_name):
 
     return None
 
+
 def fetch_trail_information(mountain_name):
     # 등산로 정보 API 요청
     TRAIL_INFO_PARAMS['searchMtNm'] = mountain_name
@@ -117,6 +119,6 @@ def fetch_trail_information(mountain_name):
 
     trail_info_root = ET.fromstring(trail_info_response.text)
     for item in trail_info_root.iter("item"):
-        return item.findtext('etccourse'),item.findtext('details')  # 등산로와 정보
+        return item.findtext('etccourse'), item.findtext('details')  # 등산로와 정보
 
     return "정보 없음"
