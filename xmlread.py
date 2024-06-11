@@ -9,7 +9,7 @@ BASE_URL = 'http://apis.data.go.kr/B553662/top100FamtListBasiInfoService/getTop1
 MOUNTAIN_INFO_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoOpenAPI2'
 TRAIL_INFO_URL = 'http://api.forest.go.kr/openapi/service/cultureInfoService/gdTrailInfoOpenAPI'
 MOUNTAIN_PICTURE_URL = 'http://apis.data.go.kr/1400000/service/cultureInfoService2/mntInfoImgOpenAPI2'
-
+POI_URL = 'http://apis.data.go.kr/B553662/sghtngPoiInfoService/getSghtngPoiInfoList'
 # API 키 (디코딩됨)
 SERVICE_KEY = "VFmlOup7ePIpAb7U94%2B7EK7qHRHxNL0iZ%2F4orFG3OqEnNXWkVxtuxswyJYOijCoSa5tvdCyeuxhyujNTsobAdw%3D%3D"
 SERVICE_KEY = unquote(SERVICE_KEY)
@@ -19,6 +19,7 @@ QUERY_PARAMS = {'serviceKey': SERVICE_KEY, 'pageNo': '1', 'numOfRows': '100', 't
 MOUNTAIN_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchWrd': '', 'pageNo': '1', 'numOfRows': '10'}
 TRAIL_INFO_PARAMS = {'serviceKey': SERVICE_KEY, 'searchMtNm': '', 'pageNo': '1', 'numOfRows': '10'}
 MOUNTAIN_PICTURE_PARAMS = {'serviceKey': SERVICE_KEY, 'mntiListNo': '', 'pageNo': '1', 'numOfRows': '1'}
+POI_PARAMS = {'serviceKey': SERVICE_KEY, 'srchFrtrlNm': '', 'pageNo': '1', 'numOfRows': '100','type':'xml'}
 
 
 def fetch_mountain_data():
@@ -52,6 +53,27 @@ def fetch_mountain_information(mountain_name):
     for item in mountain_info_root.iter("item"):
         MOUNTAIN_PICTURE_PARAMS['mntiListNo'] = item.findtext('mntilistno')
         return item.findtext('mntidetails')
+
+    return "정보 없음"
+def fetch_POI(mountain_name):
+    # 산 정보 API 요청
+    POI_PARAMS['srchFrtrlNm'] = mountain_name
+    POI_response = requests.get(POI_URL, params=POI_PARAMS)
+    POI_response.raise_for_status()
+    POI_l =[]
+    text =''
+    POI_root = ET.fromstring(POI_response.text)
+    for item in POI_root.iter("item"):
+        POI_l.append(item.findtext('placeNm'))
+    if POI_l:
+        set(POI_l)
+        list(POI_l)
+        for POI in POI_l:
+            if POI_l[-1] == POI:
+                text += POI
+            else:
+                text += POI + ', '
+        return text
 
     return "정보 없음"
 

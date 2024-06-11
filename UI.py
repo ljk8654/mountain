@@ -8,6 +8,7 @@ from xmlread import *
 import gmail
 import spam
 import subprocess
+import tkinter.ttk
 
 
 
@@ -17,13 +18,13 @@ class UI:
         self.label.append(Label(self.frame[0], text="정보 입력", font=self.TempFont, bg='green'))
         self.label[0].grid(row=0, column=0, sticky='NSEW', columnspan=4)
 
-        self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont))
+        self.label.append(Label(self.frame[0], text="산 이름", font=self.TempFont,bg='lightgreen'))
         self.label[1].grid(row=1, column=0, sticky='WN', padx=(5, 0), pady=5)
 
         self.entry1 = Entry(self.frame[0], width=15, font=self.TempFont)
         self.entry1.grid(row=1, column=1, sticky='WN', pady=5, padx=5)
 
-        self.label.append(Label(self.frame[0], text="지역명", font=self.TempFont))
+        self.label.append(Label(self.frame[0], text="지역명", font=self.TempFont,bg='lightgreen'))
         self.label[2].grid(row=2, column=0, sticky='WN', padx=(5, 0), pady=5)
 
         self.entry2 = Entry(self.frame[0], width=15, font=self.TempFont)
@@ -189,7 +190,7 @@ class UI:
 
 
         trail_window = Toplevel(self.window,bg='lightgreen')
-        trail_window.geometry("420x600")
+        trail_window.geometry("440x600")
         trail_window.title("등산로 정보")
         Save_Frame_LEFT = Frame(trail_window,bg='lightgreen')
         Save_Frame_LEFT.grid(row=0, column=0, sticky='NSEW')
@@ -209,23 +210,36 @@ class UI:
         self.save_mountain_label_info = Label(Save_Frame_RIGHT, text=self.save_mountain_name, font=self.TempFont, bg='lightgreen')
         self.save_mountain_label_info.grid(row=1, column=0, sticky="nsew", columnspan=1)
 
-        trail = Label(Save_Frame_RIGHT, text='등산로', font=self.TempFont,bg='green')
-        trail.grid(row=2, column=0, padx=10, sticky="nsew",columnspan=1)
+        # Create a notebook widget
+        notebook = tkinter.ttk.Notebook(Save_Frame_RIGHT)
+        notebook.grid(row=2, column=0, sticky='NSEW', columnspan=1)  # Position the notebook
+
+        # Create frames (pages) for the notebook
+        trail_frame = Frame(notebook, bg='lightgreen')
+        map_frame = Frame(notebook, bg='lightgreen')  # Add a map frame (optional)
+
+        # Add frames to the notebook
+        notebook.add(trail_frame, text='등산로')
+        notebook.add(map_frame, text='문화자원')  # Add map tab (optional)
+
         wrapped_text = "\n".join(textwrap.wrap(self.trail, 20))
-        self.trail_label = Label(Save_Frame_RIGHT, text=wrapped_text, font=self.TempFont,bg='green')
+        self.trail_label = Label(trail_frame, text=wrapped_text, font=self.TempFont,bg='lightgreen')
         self.trail_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew",columnspan=1)
+
+        self.POI_label = Label(map_frame, text="\n".join(textwrap.wrap(fetch_POI(self.save_mountain_name),18)), font=self.TempFont,bg='lightgreen')
+        self.POI_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew",columnspan=1)
 
         trail_info_label = Label(Save_Frame_RIGHT, text='등산로 설명', font=self.TempFont, bg='lightgreen')
         trail_info_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew", columnspan=1)
 
-        info_frame = Frame(Save_Frame_RIGHT,bg='lightgreen')
+        info_frame = Frame(Save_Frame_RIGHT, bg='lightgreen')
         info_frame.grid(row=5, column=0, sticky='NSEW', columnspan=3)
 
         wrapped_text = "\n".join(textwrap.wrap(self.trail_detail, 16))
-        self.trail_info = Text(info_frame,font=self.TempFont,wrap=WORD,height=10, width=30, bg='lightgreen')
+        self.trail_info = Text(info_frame, font=self.TempFont, wrap=WORD, height=10, width=30, bg='lightgreen')
         self.trail_info.grid(row=0, column=0, padx=10, pady=10, sticky="n")
 
-        save_scrollbar = Scrollbar(info_frame, orient=VERTICAL, command=self.trail_info.yview,bg='lightgreen')
+        save_scrollbar = Scrollbar(info_frame, orient=VERTICAL, command=self.trail_info.yview, bg='lightgreen')
         self.trail_info.config(yscrollcommand=save_scrollbar.set)
         save_scrollbar.grid(row=0, column=1, sticky='NS')
         self.trail_info.insert(END, wrapped_text)
@@ -237,9 +251,12 @@ class UI:
         selected_index = self.Save_ListBox.curselection()
         selected_mountain_name = self.Save_ListBox.get(selected_index)
         self.save_mountain_name = self.Save_ListBox.get(selected_index)
+        print(self.save_mountain_name)
         self.trail, self.trail_detail = fetch_trail_information(selected_mountain_name)
         wrapped_text = "\n".join(textwrap.wrap(self.trail, 16))
         self.trail_label.config(text=wrapped_text)
+        wrapped_text = "\n".join(textwrap.wrap(fetch_POI(self.save_mountain_name), 18))
+        self.POI_label.config(text=wrapped_text)
         self.trail_info.config(state=NORMAL)
         self.trail_info.delete(1.0, END)
         wrapped_description = "\n".join(textwrap.wrap(self.trail_detail, 18))
